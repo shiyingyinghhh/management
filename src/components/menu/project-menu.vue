@@ -11,10 +11,10 @@
       <a-sub-menu key="1">
         <template #icon><icon-palette /></template>
         <template #title>资源管理</template>
-        <a-menu-item key="1_1">证书模板</a-menu-item>
-        <a-menu-item key="1_2">模板素材</a-menu-item>
+        <a-menu-item key="1_1" @click="navigateTo('templateManagement')">证书模板</a-menu-item>
+        <a-menu-item key="1_2" @click="navigateTo('materialManagement')">模板素材</a-menu-item>
       </a-sub-menu>
-      <a-menu-item key="2">
+      <a-menu-item key="2" @click="navigateTo('certificateManagement')">
         <template #icon><icon-file /></template>
         证书管理
       </a-menu-item>
@@ -37,15 +37,25 @@
 
 <script setup>
 import { ref } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import { useAppStore } from '@/store';
 import { IconPalette, IconFile, IconMenuFold, IconMenuUnfold } from '@arco-design/web-vue/es/icon';
 
 const appStore = useAppStore();
+const router = useRouter();
+const route = useRoute();
 const collapsed = ref(appStore.menuCollapse);
 
 const handleCollapse = (val) => {
   collapsed.value = val;
   appStore.updateSettings({ menuCollapse: val });
+};
+
+const navigateTo = (routeName) => {
+  router.push({
+    name: routeName,
+    params: { projectNumber: route.params.projectNumber }
+  });
 };
 </script>
 

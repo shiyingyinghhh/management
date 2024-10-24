@@ -47,48 +47,34 @@ export default {
           },
         },
         {
-          path: 'resources',
-          name: 'ProjectResources',
-          component: () => import('@/views/projects/ProjectResources.vue'),
+          path: 'template',
+          name: 'templateManagement',
+          component: () => import('@/views/template/index.vue'),
           meta: {
-            requiresAuth: true,
-            roles: ['*'],
+            title: '证书模板',
+            order: 2,
           },
         },
         {
-          path: 'certificates',
-          name: 'ProjectCertificates',
-          component: () => import('@/views/projects/ProjectCertificates.vue'),
+          path: 'material',
+          name: 'materialManagement',
+          component: () => import('@/views/material/index.vue'),
           meta: {
-            requiresAuth: true,
-            roles: ['*'],
+            title: '模板素材',
+            order: 3,
+          },
+        },
+        {
+          path: 'certificate',
+          name: 'certificateManagement',
+          component: () => import('@/views/certificate/index.vue'),
+          meta: {
+            title: '证书管理',
+            icon: 'icon-file',
+            order: 4,
           },
         },
       ],
     },
-    {
-      path: '/template',
-      name: 'templateManagement',
-      component: () => import('@/views/template/index.vue'),
-      meta: {
-        title: '模板管理',
-      }
-    },
-    {
-      path: '/material',
-      name: 'materialManagement',
-      component: () => import('@/views/material/index.vue'),
-      meta: {
-        title: '材管理',
-      }
-    },
-    {
-      path: '/certificate',
-      name: 'certificateManagement',
-      component: () => import('@/views/certificate/index.vue'),
-      meta: {
-        title: '证书管理',
-      }
-    }
   ]
 }
