@@ -2,16 +2,16 @@
   <div class="navbar">
     <div class="left-side">
       <a-space>
-        <img
+        <!-- <img
           alt="logo"
           class="h-8"
           :src="`https://${env}-oss.mcga.com.cn/manage/logo.Y6bBmFb1.svg`"
-        />
+        /> -->
         <a-typography-title
           :style="{ margin: 0, fontSize: '16px' }"
           :heading="5"
         >
-          管理后台
+          证书管理系统
         </a-typography-title>
         <icon-menu-fold
           v-if="!topMenu && appStore.device === 'mobile'"

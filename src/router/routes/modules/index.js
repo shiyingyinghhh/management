@@ -1,20 +1,53 @@
 import { DEFAULT_LAYOUT } from '@/router/constants'
+
 export default {
-  path: '/index',
-  name: 'index',
+  path: '/',
+  name: 'root',
   component: DEFAULT_LAYOUT,
   meta: {
-    title: '首页',
-    icon: 'icon-dashboard',
     order: 0,
   },
   children: [
     {
-      path: '/home',
+      path: 'home',
       name: 'home',
-      component: () => import('@/views/module/home/index.vue'),
+      component: () => import('@/views/home/index.vue'),
       meta: {
-        title: 'HOME',
+        title: '首页',
+        icon: 'icon-home',
+        order: 0,
+      }
+    },
+    {
+      path: '/projects',
+      name: 'projectManagement',
+      component: () => import('@/views/projects/index.vue'),
+      meta: {
+        title: '项目管理',
+      }
+    },
+    {
+      path: '/template',
+      name: 'templateManagement',
+      component: () => import('@/views/template/index.vue'),
+      meta: {
+        title: '模板管理',
+      }
+    },
+    {
+      path: '/material',
+      name: 'materialManagement',
+      component: () => import('@/views/material/index.vue'),
+      meta: {
+        title: '素材管理',
+      }
+    },
+    {
+      path: '/certificate',
+      name: 'certificateManagement',
+      component: () => import('@/views/certificate/index.vue'),
+      meta: {
+        title: '证书管理',
       }
     }
   ]

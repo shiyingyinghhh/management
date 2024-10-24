@@ -13,5 +13,51 @@
     "device": "desktop",
     "tabBar": false,
     "menuFromServer": true,
-    "serverMenu": []
+    "serverMenu": [
+        {
+            "meta": {
+                "order": 0,
+                "icon": "icon-home",   
+                "title": "首页"
+            },
+            "name": "home",
+            "path": "/home"
+        },
+        {
+            "meta": {
+                "order": 1,
+                "icon": "icon-home",   
+                "title": "项目管理"
+            },
+            "name": "projectManagement",
+            "path": "/projects"
+        },
+        {
+            "meta": {
+                "order": 2,
+                "icon": "icon-home",
+                "title": "模板管理"
+            },
+            "name": "templateManagement",
+            "path": "/template"
+        },
+        {
+            "meta": {
+                "order": 3,
+                "icon": "icon-home",
+                "title": "素材管理"
+            },
+            "name": "materialManagement",
+            "path": "/material"
+        },
+        {
+            "meta": {
+                "order": 4,
+                "icon": "icon-home",
+                "title": "证书管理"
+            },
+            "name": "certificateManagement",
+            "path": "/certificate"
+        }
+    ]  
 }
