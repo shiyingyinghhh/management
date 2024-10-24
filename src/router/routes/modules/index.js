@@ -27,6 +27,14 @@ export default {
       }
     },
     {
+      path: '/projects/project/:projectNumber',
+      name: 'projectDetail',
+      component: () => import('@/views/projects/project-[projectNumber].vue'),
+      meta: {
+        title: '项目详情',
+      }
+    },
+    {
       path: '/template',
       name: 'templateManagement',
       component: () => import('@/views/template/index.vue'),
@@ -39,7 +47,7 @@ export default {
       name: 'materialManagement',
       component: () => import('@/views/material/index.vue'),
       meta: {
-        title: '素材管理',
+        title: '���材管理',
       }
     },
     {

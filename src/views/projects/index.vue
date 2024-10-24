@@ -1,6 +1,9 @@
 <script setup>
 import { reactive, ref, computed } from 'vue';
 import { Message } from '@arco-design/web-vue';
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
 
 const searchForm = reactive({
   projectName: '',
@@ -160,6 +163,10 @@ const handleDelete = (record) => {
   }
 };
 
+const enterProject = (projectNumber) => {
+  router.push(`/projects/project/${projectNumber}`);
+};
+
 fetchData();
 </script>
 
@@ -241,6 +248,9 @@ fetchData();
               删除
             </a-button>
           </a-popconfirm>
+          <a-button type="text" size="small" @click="enterProject(record.projectNumber)">
+            进入项目
+          </a-button>
         </template>
       </a-table>
     </a-card>
