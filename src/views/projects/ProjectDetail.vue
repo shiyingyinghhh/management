@@ -1,8 +1,7 @@
 <template>
-  <div>
-    <h1>项目详情</h1>
-    <p>项目编号: {{ projectNumber }}</p>
-    <!-- 在这里添加更多项目详情的内容 -->
+  <div >
+    <h1>项目详情: {{ projectNumber }}</h1>
+    
   </div>
 </template>
 
@@ -15,7 +14,9 @@ const projectNumber = ref('');
 
 onMounted(() => {
   projectNumber.value = route.params.projectNumber;
-  console.log('项目编号:', projectNumber.value);
-  // 在这里可以根据项目编号获取项目详细信息
 });
 </script>
+
+<style scoped>
+
+</style>

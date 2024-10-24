@@ -7,12 +7,14 @@
           class="h-8"
           :src="`https://${env}-oss.mcga.com.cn/manage/logo.Y6bBmFb1.svg`"
         /> -->
-        <a-typography-title
-          :style="{ margin: 0, fontSize: '16px' }"
-          :heading="5"
-        >
-          证书管理系统
-        </a-typography-title>
+        <router-link to="/" class="text-inherit no-underline cursor-pointer">
+          <a-typography-title
+            :style="{ margin: 0, fontSize: '16px' }"
+            :heading="5"
+          >
+            证书管理系统
+          </a-typography-title>
+        </router-link>
         <icon-menu-fold
           v-if="!topMenu && appStore.device === 'mobile'"
           style="font-size: 22px; cursor: pointer"

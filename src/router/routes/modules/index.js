@@ -1,4 +1,5 @@
 import { DEFAULT_LAYOUT } from '@/router/constants'
+import { PROJECT_LAYOUT } from '../base';
 
 export default {
   path: '/',
@@ -29,10 +30,41 @@ export default {
     {
       path: '/projects/project/:projectNumber',
       name: 'projectDetail',
-      component: () => import('@/views/projects/project-[projectNumber].vue'),
+      component: PROJECT_LAYOUT,
       meta: {
-        title: '项目详情',
-      }
+        requiresAuth: true,
+        icon: 'icon-dashboard',
+        hideInMenu: true,
+      },
+      children: [
+        {
+          path: '',
+          name: 'ProjectOverview',
+          component: () => import('@/views/projects/ProjectDetail.vue'),
+          meta: {
+            requiresAuth: true,
+            roles: ['*'],
+          },
+        },
+        {
+          path: 'resources',
+          name: 'ProjectResources',
+          component: () => import('@/views/projects/ProjectResources.vue'),
+          meta: {
+            requiresAuth: true,
+            roles: ['*'],
+          },
+        },
+        {
+          path: 'certificates',
+          name: 'ProjectCertificates',
+          component: () => import('@/views/projects/ProjectCertificates.vue'),
+          meta: {
+            requiresAuth: true,
+            roles: ['*'],
+          },
+        },
+      ],
     },
     {
       path: '/template',
@@ -47,7 +79,7 @@ export default {
       name: 'materialManagement',
       component: () => import('@/views/material/index.vue'),
       meta: {
-        title: '���材管理',
+        title: '材管理',
       }
     },
     {

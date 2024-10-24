@@ -31,42 +31,5 @@
             },
             "name": "projectManagement",
             "path": "/projects"
-        },
-        {
-            "meta": {
-                "order": 2,
-                "icon": "icon-palette",
-                "title": "资源管理"
-            },
-            "name": "projectManagement",
-            "children": [
-                {
-                    "meta": {
-                        "order": 2,
-                        "title": "证书模板"
-                    },
-                    "name": "templateManagement",
-                    "path": "/template"
-                },
-                {
-                    "meta": {
-                        "order": 3,
-                        "title": "模板素材"
-                    },
-                    "name": "materialManagement",
-                    "path": "/material"
-                }
-            ]
-        },
-     
-        {
-            "meta": {
-                "order": 4,
-                "icon": "icon-file",
-                "title": "证书管理"
-            },
-            "name": "certificateManagement",
-            "path": "/certificate"
-        }
-    ]  
+        }]
 }
