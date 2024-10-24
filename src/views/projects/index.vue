@@ -16,6 +16,20 @@ const form = reactive({
 const rules = {
   projectNumber: [
     { required: true, message: '请输入项目编号' },
+    {
+      validator: (value, callback) => {
+        if (value) {
+          const isExist = mockData.some(item => item.projectNumber === value && item.id !== form.id);
+          if (isExist) {
+            callback('项目编号已存在');
+          } else {
+            callback();
+          }
+        } else {
+          callback();
+        }
+      },
+    },
   ],
   projectName: [
     { required: true, message: '请输入项目名称' },
@@ -111,6 +125,14 @@ const handleSubmit = async () => {
       console.error('表单验证失败', errors);
       return;
     }
+    
+    // 再次检查项目编号是否唯一
+    const isExist = mockData.some(item => item.projectNumber === form.projectNumber && item.id !== form.id);
+    if (isExist) {
+      Message.error('项目编号已存在');
+      return;
+    }
+    
     if (form.id) {
       const index = mockData.findIndex(item => item.id === form.id);
       if (index !== -1) {
