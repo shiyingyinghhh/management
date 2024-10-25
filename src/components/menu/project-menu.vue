@@ -3,11 +3,15 @@
     <a-menu
       :style="{ width: '100%', height: '100%' }"
       :defaultOpenKeys="['1']"
-      :defaultSelectedKeys="['1_1']"
+      :defaultSelectedKeys="['0']"
       :collapsed="collapsed"
       show-collapse-button
       @collapse="handleCollapse"
     >
+      <a-menu-item key="0" @click="navigateTo('ProjectOverview')">
+        <template #icon><icon-dashboard /></template>
+        当前项目
+      </a-menu-item>
       <a-sub-menu key="1">
         <template #icon><icon-palette /></template>
         <template #title>资源管理</template>
@@ -39,7 +43,7 @@
 import { ref } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useAppStore } from '@/store';
-import { IconPalette, IconFile, IconMenuFold, IconMenuUnfold } from '@arco-design/web-vue/es/icon';
+import { IconPalette, IconFile, IconMenuFold, IconMenuUnfold, IconDashboard } from '@arco-design/web-vue/es/icon';
 
 const appStore = useAppStore();
 const router = useRouter();
