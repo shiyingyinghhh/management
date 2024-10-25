@@ -1,54 +1,299 @@
 <template>
-    <div class="container mx-auto px-4 py-8">
-      <h1 class="text-2xl font-bold mb-6">素材管理</h1>
-      <div class="mb-4">
-        <label class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded cursor-pointer">
-          上传素材
-          <input type="file" class="hidden" @change="handleFileUpload" />
-        </label>
-      </div>
-      <div class="overflow-x-auto">
-        <table class="min-w-full bg-white">
-          <thead class="bg-gray-100">
-            <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">素材名称</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-200">
-            <tr v-for="material in materials" :key="material.id">
-              <td class="px-6 py-4 whitespace-nowrap">{{ material.name }}</td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <button @click="downloadMaterial(material)" class="text-blue-600 hover:text-blue-900 mr-2">下载</button>
-                <button @click="deleteMaterial(material)" class="text-red-600 hover:text-red-900">删除</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </template>
+  <div class="container">
+    <a-card class="general-card" title="模板素材管理">
+      <a-row>
+        <a-col :flex="1">
+          <a-form
+            :model="searchForm"
+            :label-col-props="{ span: 6 }"
+            :wrapper-col-props="{ span: 18 }"
+            label-align="left"
+          >
+            <a-row :gutter="16">
+              <a-col :span="8">
+                <a-form-item field="fileName" label="文件名称">
+                  <a-input
+                    v-model="searchForm.fileName"
+                    placeholder="请输入文件名称"
+                  />
+                </a-form-item>
+              </a-col>
+              <a-col :span="8">
+                <a-space>
+                  <a-button type="primary" @click="search">
+                    <template #icon>
+                      <icon-search />
+                    </template>
+                    搜索
+                  </a-button>
+                  <a-button @click="reset">
+                    <template #icon>
+                      <icon-refresh />
+                    </template>
+                    重置
+                  </a-button>
+                </a-space>
+              </a-col>
+            </a-row>
+          </a-form>
+        </a-col>
+        <a-col :flex="'86px'" style="text-align: right">
+          <a-button type="primary" @click="openAddDrawer">
+            <template #icon>
+              <icon-plus />
+            </template>
+            新增
+          </a-button>
+        </a-col>
+      </a-row>
+      <a-table
+        row-key="id"
+        :loading="loading"
+        :pagination="pagination"
+        :columns="columns"
+        :data="renderData"
+        :bordered="false"
+        @page-change="onPageChange"
+      >
+        <template #operations="{ record }">
+          <a-button type="text" size="small" @click="handleDownload(record)">
+            下载
+          </a-button>
+          <a-popconfirm
+            content="确定要删除这个文件吗？"
+            @ok="handleDelete(record)"
+          >
+            <a-button type="text" status="danger" size="small">
+              删除
+            </a-button>
+          </a-popconfirm>
+        </template>
+      </a-table>
+
+      <!-- 新增素材抽屉 -->
+      <a-drawer
+        :visible="drawerVisible"
+        @cancel="closeAddDrawer"
+        @ok="confirmAdd"
+        title="新增素材"
+        width="500px"
+      >
+        <a-form :model="addForm" :label-col-props="{ span: 6 }" :wrapper-col-props="{ span: 18 }">
+          <a-form-item field="materialName" label="素材名称" required>
+            <a-input v-model="addForm.materialName" placeholder="请输入素材名称" />
+          </a-form-item>
+          <a-form-item field="file" label="上传文件" required>
+            <input type="file" @change="handleFileChange" ref="fileInput" style="display: none;" />
+            <a-button @click="triggerFileInput">选择文件</a-button>
+            <div v-if="addForm.fileName" style="margin-left: 10px;">已选择: {{ addForm.fileName }}</div>
+          </a-form-item>
+        </a-form>
+      </a-drawer>
+    </a-card>
+  </div>
+</template>
+
+<script setup>
+import { reactive, ref, onMounted } from 'vue';
+import { Message } from '@arco-design/web-vue';
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
+
+const searchForm = reactive({
+  fileName: '',
+});
+
+const loading = ref(false);
+const renderData = ref([]);
+const pagination = reactive({
+  total: 0,
+  current: 1,
+  pageSize: 10,
+});
+
+const columns = [
+  {
+    title: '素材名称',
+    dataIndex: 'materialName',
+  },
+  {
+    title: '文件名称',
+    dataIndex: 'fileName',
+  },
+  {
+    title: '文件大小',
+    dataIndex: 'fileSize',
+    render: ({ record }) => `${(record.fileSize / 1024).toFixed(2)} KB`,
+  },
+  {
+    title: '文件类型',
+    dataIndex: 'fileType',
+  },
+  {
+    title: '上传时间',
+    dataIndex: 'uploadTime',
+  },
+  {
+    title: '操作',
+    dataIndex: 'operations',
+    slotName: 'operations',
+  },
+];
+
+// 从localStorage获取数据
+const getLocalData = () => {
+  const data = localStorage.getItem('materialData');
+  return data ? JSON.parse(data) : [];
+};
+
+// 保存数据到localStorage
+const saveLocalData = (data) => {
+  localStorage.setItem('materialData', JSON.stringify(data));
+};
+
+// 获取素材列表
+const fetchData = () => {
+  loading.value = true;
+  const allData = getLocalData();
+  const filteredData = allData.filter(item => 
+    item.fileName.toLowerCase().includes(searchForm.fileName.toLowerCase())
+  );
+  renderData.value = filteredData.slice(
+    (pagination.current - 1) * pagination.pageSize,
+    pagination.current * pagination.pageSize
+  );
+  pagination.total = filteredData.length;
+  loading.value = false;
+};
+
+const search = () => {
+  pagination.current = 1;
+  fetchData();
+};
+
+const reset = () => {
+  searchForm.fileName = '';
+  search();
+};
+
+const onPageChange = (current) => {
+  pagination.current = current;
+  fetchData();
+};
+
+const drawerVisible = ref(false);
+const addForm = reactive({
+  materialName: '',
+  fileName: '',
+  file: null,
+});
+
+const openAddDrawer = () => {
+  addForm.materialName = '';
+  addForm.fileName = '';
+  addForm.file = null;
+  drawerVisible.value = true;
+};
+
+const closeAddDrawer = () => {
+  drawerVisible.value = false;
+};
+
+const fileInput = ref(null);
+
+const triggerFileInput = () => {
+  fileInput.value.click();
+};
+
+const handleFileChange = (event) => {
+  const file = event.target.files[0];
+  if (file) {
+    console.log('Selected file:', file);
+    addForm.fileName = file.name;
+    addForm.file = file;
+    Message.success('文件选择成功');
+  } else {
+    console.error('No file selected');
+    Message.error('文件选择失败');
+  }
+};
+
+const confirmAdd = () => {
+  if (!addForm.materialName.trim()) {
+    Message.error('请输入素材名称');
+    return;
+  }
+  if (!addForm.file) {
+    Message.error('请选择文件');
+    return;
+  }
+  console.log('Uploading file:', addForm.file);
+  handleFileUpload(addForm.file, () => {
+    drawerVisible.value = false;
+    Message.success('素材添加成功');
+    fetchData();
+  }, (error) => {
+    console.error('File upload error:', error);
+    Message.error('素材添加失败: ' + error.message);
+  });
+};
+
+const handleFileUpload = (fileObj, onSuccess, onError) => {
+  const reader = new FileReader();
   
-  <script setup>
-  import { ref } from 'vue';
-  import { useRoute } from 'vue-router';
-  
-  const route = useRoute();
-  const projectId = route.params.projectId;
-  const templateId = route.params.templateId;
-  
-  const materials = ref([]);
-  
-  const handleFileUpload = (event) => {
-    const file = event.target.files[0];
-    // 实现文件上传逻辑
+  reader.onload = (event) => {
+    try {
+      const allData = getLocalData();
+      const newId = Math.max(...allData.map(item => item.id || 0), 0) + 1;
+      const newFile = {
+        id: newId,
+        fileName: fileObj.name,
+        materialName: addForm.materialName,
+        uploadTime: new Date().toLocaleString(),
+        fileData: event.target.result,
+        fileSize: fileObj.size,
+        fileType: fileObj.type
+      };
+      allData.push(newFile);
+      saveLocalData(allData);
+      onSuccess();
+    } catch (error) {
+      console.error('上传失败:', error);
+      onError(error);
+    }
   };
-  
-  const downloadMaterial = (material) => {
-    // 实现下载素材的逻辑
+
+  reader.onerror = (error) => {
+    console.error('文件读取失败:', error);
+    onError(error);
   };
-  
-  const deleteMaterial = (material) => {
-    // 实现删除素材的逻辑
-  };
-  </script>
+
+  reader.readAsDataURL(fileObj);
+};
+
+const handleDownload = (record) => {
+  const link = document.createElement('a');
+  link.href = record.fileData;
+  link.download = record.fileName;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
+const handleDelete = (record) => {
+  const allData = getLocalData();
+  const index = allData.findIndex(item => item.id === record.id);
+  if (index !== -1) {
+    allData.splice(index, 1);
+    saveLocalData(allData);
+    Message.success('文件删除成功');
+    fetchData();
+  }
+};
+
+onMounted(() => {
+  fetchData();
+});
+</script>
+
