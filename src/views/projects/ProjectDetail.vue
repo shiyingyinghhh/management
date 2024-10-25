@@ -1,6 +1,5 @@
 <template>
   <div>
-    <h1>项目概览: {{ projectNumber }}</h1>
     <a-descriptions :column="1" title="项目信息">
       <a-descriptions-item label="项目编号">{{ projectNumber }}</a-descriptions-item>
       <a-descriptions-item label="项目名称">{{ projectName }}</a-descriptions-item>
