@@ -1,5 +1,5 @@
 <script setup>
-import { reactive, ref, computed } from 'vue';
+import { reactive, ref, computed, onMounted } from 'vue';
 import { Message } from '@arco-design/web-vue';
 import { useRouter } from 'vue-router';
 
@@ -22,7 +22,7 @@ const rules = {
     {
       validator: (value, callback) => {
         if (value) {
-          const isExist = mockData.some(item => item.projectNumber === value && item.id !== form.id);
+          const isExist = mockData.value.some(item => item.projectNumber === value && item.id !== form.id);
           if (isExist) {
             callback('项目编号已存在');
           } else {
@@ -30,7 +30,7 @@ const rules = {
           }
         } else {
           callback();
-        }
+        } 
       },
     },
   ],
@@ -67,22 +67,41 @@ const columns = [
   },
 ];
 
-// 模拟数据
-const mockData = [
-  { id: 1, projectNumber: 'P001', projectName: '项目A' },
-  { id: 2, projectNumber: 'P002', projectName: '项目B' },
-  { id: 3, projectNumber: 'P003', projectName: '项目C' },
-];
+// 替换原有的 mockData 定义
+const STORAGE_KEY = 'projectsMockData';
+const mockData = ref([]);
 
+// 添加以下函数来加载和保存数据
+const loadMockData = () => {
+  const storedData = localStorage.getItem(STORAGE_KEY);
+  if (storedData) {
+    mockData.value = JSON.parse(storedData);
+  } else {
+    mockData.value = [
+      { id: 1, projectNumber: 'P001', projectName: '项目A' },
+      { id: 2, projectNumber: 'P002', projectName: '项目B' },
+      { id: 3, projectNumber: 'P003', projectName: '项目C' },
+    ];
+    saveMockData();
+  }
+  console.log('Loaded mockData:', mockData.value); // 添加这行
+};
+
+const saveMockData = () => {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(mockData.value));
+};
+
+// 修改 fetchData 函数
 const fetchData = () => {
   loading.value = true;
   setTimeout(() => {
-    renderData.value = mockData.filter(item => 
+    renderData.value = mockData.value.filter(item => 
       item.projectName.includes(searchForm.projectName) &&
       item.projectNumber.includes(searchForm.projectNumber)
     );
     pagination.total = renderData.value.length;
     loading.value = false;
+    console.log('Fetched data:', renderData.value); // 添加这行
   }, 1000);
 };
 
@@ -112,6 +131,7 @@ const openDrawer = (record) => {
       projectName: '',
     });
   }
+  console.log('Opening drawer with form:', form); // 添加这行
   drawerVisible.value = true;
 };
 
@@ -120,33 +140,40 @@ const closeDrawer = () => {
   formRef.value.resetFields();
 };
 
+// 修改 handleSubmit 函数
 const handleSubmit = async () => {
   try {
     const errors = await formRef.value.validate();
     if (errors) {
-      // 如果有错误，不执行提交操作
       console.error('表单验证失败', errors);
       return;
     }
     
-    // 再次检查项目编号是否唯一
-    const isExist = mockData.some(item => item.projectNumber === form.projectNumber && item.id !== form.id);
+    console.log('Submitting form:', form);
+    
+    const isExist = mockData.value.some(item => item.projectNumber === form.projectNumber && item.id !== form.id);
     if (isExist) {
       Message.error('项目编号已存在');
       return;
     }
     
     if (form.id) {
-      const index = mockData.findIndex(item => item.id === form.id);
+      // 编辑现有项目
+      const index = mockData.value.findIndex(item => item.id === form.id);
       if (index !== -1) {
-        mockData[index] = { ...form };
+        mockData.value[index] = { ...form };
       }
       Message.success('项目更新成功');
     } else {
-      const newId = Math.max(...mockData.map(item => item.id)) + 1;
-      mockData.push({ ...form, id: newId });
+      // 新增项目
+      const newId = Math.max(...mockData.value.map(item => item.id), 0) + 1;
+      const newProject = { ...form, id: newId };
+      mockData.value.push(newProject);
+      console.log('New project added:', newProject); // 添加这行
       Message.success('项目创建成功');
     }
+    saveMockData();
+    console.log('Updated mockData:', mockData.value); // 添加这行
     closeDrawer();
     fetchData();
   } catch (error) {
@@ -154,10 +181,12 @@ const handleSubmit = async () => {
   }
 };
 
+// 修改 handleDelete 函数
 const handleDelete = (record) => {
-  const index = mockData.findIndex(item => item.id === record.id);
+  const index = mockData.value.findIndex(item => item.id === record.id);
   if (index !== -1) {
-    mockData.splice(index, 1);
+    mockData.value.splice(index, 1);
+    saveMockData();
     Message.success('项目删除成功');
     fetchData();
   }
@@ -167,7 +196,10 @@ const enterProject = (projectNumber) => {
   router.push(`/projects/project/${projectNumber}`);
 };
 
-fetchData();
+onMounted(() => {
+  loadMockData();
+  fetchData();
+});
 </script>
 
 <template>
