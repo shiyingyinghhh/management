@@ -33,9 +33,11 @@
           <ProjectMenu />
         </a-drawer>
         <a-layout class="layout-content" :style="paddingStyle">
-          <a-layout-content>
+            <TabBar v-if="appStore.tabBar" />
+            <a-layout-content>
             <PageLayout />
           </a-layout-content>
+          <Footer v-if="footer" />
         </a-layout>
       </a-layout>
     </a-layout>

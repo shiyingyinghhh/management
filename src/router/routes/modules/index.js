@@ -4,7 +4,7 @@ import { PROJECT_LAYOUT } from '../base';
 export default {
   path: '/',
   name: 'root',
-  component: DEFAULT_LAYOUT,
+ 
   meta: {
     order: 0,
   },
@@ -12,6 +12,7 @@ export default {
     {
       path: 'home',
       name: 'home',
+      component: DEFAULT_LAYOUT,
       component: () => import('@/views/home/index.vue'),
       meta: {
         title: '首页',
@@ -22,6 +23,7 @@ export default {
     {
       path: '/projects',
       name: 'projectManagement',
+      component: DEFAULT_LAYOUT,
       component: () => import('@/views/projects/index.vue'),
       meta: {
         title: '项目管理',
