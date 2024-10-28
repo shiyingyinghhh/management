@@ -1,7 +1,7 @@
 <template>
   <div class="container">
     <a-card class="general-card" title="模板素材管理">
-      <a-row>
+      <a-row class="mb-4">
         <a-col :flex="1">
           <a-form
             :model="searchForm"
@@ -15,6 +15,7 @@
                   <a-input
                     v-model="searchForm.fileName"
                     placeholder="请输入文件名称"
+                    class="w-full"
                   />
                 </a-form-item>
               </a-col>
@@ -37,7 +38,7 @@
             </a-row>
           </a-form>
         </a-col>
-        <a-col :flex="'86px'" style="text-align: right">
+        <a-col :flex="'86px'" class="text-right">
           <a-button type="primary" @click="openAddDrawer">
             <template #icon>
               <icon-plus />
@@ -52,6 +53,7 @@
         :pagination="pagination"
         :columns="columns"
         :data="renderData"
+        class="mt-4"
         :bordered="false"
         @page-change="onPageChange"
       >
@@ -78,14 +80,30 @@
         title="新增素材"
         width="500px"
       >
-        <a-form :model="addForm" :label-col-props="{ span: 6 }" :wrapper-col-props="{ span: 18 }">
+        <a-form 
+          :model="addForm" 
+          :label-col-props="{ span: 6 }" 
+          :wrapper-col-props="{ span: 18 }"
+        >
           <a-form-item field="materialName" label="素材名称" required>
-            <a-input v-model="addForm.materialName" placeholder="请输入素材名称" />
+            <a-input v-model="addForm.materialName" placeholder="请输入素材名称" class="w-full" />
           </a-form-item>
-          <a-form-item field="file" label="上传文件" required>
-            <input type="file" @change="handleFileChange" ref="fileInput" style="display: none;" />
-            <a-button @click="triggerFileInput">选择文件</a-button>
-            <div v-if="addForm.fileName" style="margin-left: 10px;">已选择: {{ addForm.fileName }}</div>
+          <a-form-item field="file" label="上传素材" required>
+            <div class="flex items-center gap-2">
+              <input 
+                type="file" 
+                @change="handleFileChange" 
+                ref="fileInput" 
+                class="hidden" 
+                accept="image/*"
+              />
+              <a-button @click="triggerFileInput">
+                {{ addForm.file ? '重新选择' : '选择素材' }}
+              </a-button>
+              <span v-if="addForm.file" class="text-gray-600">
+                {{ addForm.file.name }}
+              </span>
+            </div>  
           </a-form-item>
         </a-form>
       </a-drawer>
@@ -94,7 +112,7 @@
 </template>
 
 <script setup>
-import { reactive, ref, onMounted } from 'vue';
+import { reactive, ref, computed, onMounted } from 'vue';
 import { Message } from '@arco-design/web-vue';
 import { useRouter } from 'vue-router';
 
@@ -181,20 +199,8 @@ const onPageChange = (current) => {
 const drawerVisible = ref(false);
 const addForm = reactive({
   materialName: '',
-  fileName: '',
   file: null,
 });
-
-const openAddDrawer = () => {
-  addForm.materialName = '';
-  addForm.fileName = '';
-  addForm.file = null;
-  drawerVisible.value = true;
-};
-
-const closeAddDrawer = () => {
-  drawerVisible.value = false;
-};
 
 const fileInput = ref(null);
 
@@ -205,14 +211,14 @@ const triggerFileInput = () => {
 const handleFileChange = (event) => {
   const file = event.target.files[0];
   if (file) {
-    console.log('Selected file:', file);
-    addForm.fileName = file.name;
     addForm.file = file;
     Message.success('素材选择成功');
   } else {
-    console.error('No file selected');
+    addForm.file = null;
     Message.error('素材选择失败');
   }
+  // 重置 input
+  event.target.value = '';
 };
 
 const confirmAdd = () => {
@@ -285,6 +291,19 @@ const handleDelete = (record) => {
     Message.success('素材删除成功');
     fetchData();
   }
+};
+
+const openAddDrawer = () => {
+  addForm.materialName = '';
+  addForm.file = null;
+  if (fileInput.value) {
+    fileInput.value.value = '';
+  }
+  drawerVisible.value = true;
+};
+
+const closeAddDrawer = () => {
+  drawerVisible.value = false;
 };
 
 onMounted(() => {
