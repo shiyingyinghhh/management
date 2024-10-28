@@ -1,117 +1,3 @@
-<template>
-  <div class="container">
-    <a-card class="general-card" title="模板素材">
-      <a-row class="mb-4">
-        <a-col :flex="1">
-          <a-form
-            :model="searchForm"
-            :label-col-props="{ span: 6 }"
-            :wrapper-col-props="{ span: 18 }"
-            label-align="left"
-          >
-            <a-row :gutter="16">
-              <a-col :span="8">
-                <a-form-item field="materialName" label="素材名称">
-                  <a-input
-                    v-model="searchForm.materialName"
-                    placeholder="请输入素材名称"
-                    class="w-full"
-                    allow-clear="true"
-                  />
-                </a-form-item>
-              </a-col>
-              <a-col :span="8">
-                <a-space>
-                  <a-button type="primary" @click="handle.search">
-                    <template #icon>
-                      <icon-search />
-                    </template>
-                    搜索
-                  </a-button>
-                  <a-button @click="handle.reset">
-                    <template #icon>
-                      <icon-refresh />
-                    </template>
-                    重置
-                  </a-button>
-                </a-space>
-              </a-col>
-            </a-row>
-          </a-form>
-        </a-col>
-        <a-col :flex="'86px'" class="text-right">
-          <a-button type="primary" @click="handle.openAddDrawer">
-            <template #icon>
-              <icon-plus />
-            </template>
-            新增
-          </a-button>
-        </a-col>
-      </a-row>
-      <a-table
-        row-key="id"
-        :loading="loading"
-        :pagination="pagination"
-        :columns="columns"
-        :data="renderData"
-        class="mt-4"
-        :bordered="false"
-        @page-change="handle.onPageChange"
-      >
-        <template #operations="{ record }">
-          <a-button type="text" size="small" @click="handle.download(record)">
-            下载
-          </a-button>
-          <a-popconfirm
-            content="确定要删除这个素材吗？"
-            @ok="handle.delete(record)"
-          >
-            <a-button type="text" status="danger" size="small">
-              删除
-            </a-button>
-          </a-popconfirm>
-        </template>
-      </a-table>
-
-      <!-- 新增素材抽屉 -->
-      <a-drawer
-        :visible="drawerVisible"
-        @cancel="handle.closeAddDrawer"
-        @ok="handle.confirmAdd"
-        title="新增素材"
-        width="500px"
-      >
-        <a-form 
-          :model="addForm" 
-          :label-col-props="{ span: 6 }" 
-          :wrapper-col-props="{ span: 18 }"
-        >
-          <a-form-item field="materialName" label="素材名称" required>
-            <a-input v-model="addForm.materialName" placeholder="请输入素材名称" class="w-full" />
-          </a-form-item>
-          <a-form-item field="file" label="上传素材" required>
-            <div class="flex items-center gap-2">
-              <input 
-                type="file" 
-                @change="handle.fileChange" 
-                ref="fileInput" 
-                class="hidden" 
-                accept="image/*,.pdf"
-              />
-              <a-button @click="handle.triggerFileInput">
-                {{ addForm.file ? '重新选择' : '选择素材' }}
-              </a-button>
-              <span v-if="addForm.file" class="text-gray-600">
-                {{ addForm.file.name }}
-              </span>
-            </div>  
-          </a-form-item>
-        </a-form>
-      </a-drawer>
-    </a-card>
-  </div>
-</template>
-
 <script setup>
 import { reactive, ref, computed, onMounted } from 'vue';
 import { Message } from '@arco-design/web-vue';
@@ -314,4 +200,120 @@ onMounted(() => {
   handle.fetchData();
 });
 </script>
+
+<template>
+  <div class="container">
+    <a-card class="general-card" title="模板素材">
+      <a-row class="mb-4">
+        <a-col :flex="1">
+          <a-form
+            :model="searchForm"
+            :label-col-props="{ span: 6 }"
+            :wrapper-col-props="{ span: 18 }"
+            label-align="left"
+          >
+            <a-row :gutter="16">
+              <a-col :span="8">
+                <a-form-item field="materialName" label="素材名称">
+                  <a-input
+                    v-model="searchForm.materialName"
+                    placeholder="请输入素材名称"
+                    class="w-full"
+                    allow-clear="true"
+                  />
+                </a-form-item>
+              </a-col>
+              <a-col :span="8">
+                <a-space>
+                  <a-button type="primary" @click="handle.search">
+                    <template #icon>
+                      <icon-search />
+                    </template>
+                    搜索
+                  </a-button>
+                  <a-button @click="handle.reset">
+                    <template #icon>
+                      <icon-refresh />
+                    </template>
+                    重置
+                  </a-button>
+                </a-space>
+              </a-col>
+            </a-row>
+          </a-form>
+        </a-col>
+        <a-col :flex="'86px'" class="text-right">
+          <a-button type="primary" @click="handle.openAddDrawer">
+            <template #icon>
+              <icon-plus />
+            </template>
+            新增
+          </a-button>
+        </a-col>
+      </a-row>
+      <a-table
+        row-key="id"
+        :loading="loading"
+        :pagination="pagination"
+        :columns="columns"
+        :data="renderData"
+        class="mt-4"
+        :bordered="false"
+        @page-change="handle.onPageChange"
+      >
+        <template #operations="{ record }">
+          <a-button type="text" size="small" @click="handle.download(record)">
+            下载
+          </a-button>
+          <a-popconfirm
+            content="确定要删除这个素材吗？"
+            @ok="handle.delete(record)"
+          >
+            <a-button type="text" status="danger" size="small">
+              删除
+            </a-button>
+          </a-popconfirm>
+        </template>
+      </a-table>
+
+      <!-- 新增素材抽屉 -->
+      <a-drawer
+        :visible="drawerVisible"
+        @cancel="handle.closeAddDrawer"
+        @ok="handle.confirmAdd"
+        title="新增素材"
+        width="500px"
+      >
+        <a-form 
+          :model="addForm" 
+          :label-col-props="{ span: 6 }" 
+          :wrapper-col-props="{ span: 18 }"
+        >
+          <a-form-item field="materialName" label="素材名称" required>
+            <a-input v-model="addForm.materialName" placeholder="请输入素材名称" class="w-full" />
+          </a-form-item>
+          <a-form-item field="file" label="上传素材" required>
+            <div class="flex items-center gap-2">
+              <input 
+                type="file" 
+                @change="handle.fileChange" 
+                ref="fileInput" 
+                class="hidden" 
+                accept="image/*,.pdf"
+              />
+              <a-button @click="handle.triggerFileInput">
+                {{ addForm.file ? '重新选择' : '选择素材' }}
+              </a-button>
+              <span v-if="addForm.file" class="text-gray-600">
+                {{ addForm.file.name }}
+              </span>
+            </div>  
+          </a-form-item>
+        </a-form>
+      </a-drawer>
+    </a-card>
+  </div>
+</template>
+
+
 
