@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <a-card class="general-card" title="模板素材管理">
+    <a-card class="general-card" title="模板素材">
       <a-row class="mb-4">
         <a-col :flex="1">
           <a-form
@@ -11,23 +11,24 @@
           >
             <a-row :gutter="16">
               <a-col :span="8">
-                <a-form-item field="fileName" label="文件名称">
+                <a-form-item field="materialName" label="素材名称">
                   <a-input
-                    v-model="searchForm.fileName"
-                    placeholder="请输入文件名称"
+                    v-model="searchForm.materialName"
+                    placeholder="请输入素材名称"
                     class="w-full"
+                    allow-clear="true"
                   />
                 </a-form-item>
               </a-col>
               <a-col :span="8">
                 <a-space>
-                  <a-button type="primary" @click="search">
+                  <a-button type="primary" @click="handle.search">
                     <template #icon>
                       <icon-search />
                     </template>
                     搜索
                   </a-button>
-                  <a-button @click="reset">
+                  <a-button @click="handle.reset">
                     <template #icon>
                       <icon-refresh />
                     </template>
@@ -39,7 +40,7 @@
           </a-form>
         </a-col>
         <a-col :flex="'86px'" class="text-right">
-          <a-button type="primary" @click="openAddDrawer">
+          <a-button type="primary" @click="handle.openAddDrawer">
             <template #icon>
               <icon-plus />
             </template>
@@ -55,15 +56,15 @@
         :data="renderData"
         class="mt-4"
         :bordered="false"
-        @page-change="onPageChange"
+        @page-change="handle.onPageChange"
       >
         <template #operations="{ record }">
-          <a-button type="text" size="small" @click="handleDownload(record)">
+          <a-button type="text" size="small" @click="handle.download(record)">
             下载
           </a-button>
           <a-popconfirm
             content="确定要删除这个素材吗？"
-            @ok="handleDelete(record)"
+            @ok="handle.delete(record)"
           >
             <a-button type="text" status="danger" size="small">
               删除
@@ -75,8 +76,8 @@
       <!-- 新增素材抽屉 -->
       <a-drawer
         :visible="drawerVisible"
-        @cancel="closeAddDrawer"
-        @ok="confirmAdd"
+        @cancel="handle.closeAddDrawer"
+        @ok="handle.confirmAdd"
         title="新增素材"
         width="500px"
       >
@@ -92,12 +93,12 @@
             <div class="flex items-center gap-2">
               <input 
                 type="file" 
-                @change="handleFileChange" 
+                @change="handle.fileChange" 
                 ref="fileInput" 
                 class="hidden" 
-                accept="image/*"
+                accept="image/*,.pdf"
               />
-              <a-button @click="triggerFileInput">
+              <a-button @click="handle.triggerFileInput">
                 {{ addForm.file ? '重新选择' : '选择素材' }}
               </a-button>
               <span v-if="addForm.file" class="text-gray-600">
@@ -117,17 +118,24 @@ import { Message } from '@arco-design/web-vue';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
-
-const searchForm = reactive({
-  fileName: '',
-});
-
 const loading = ref(false);
 const renderData = ref([]);
+const drawerVisible = ref(false);
+const fileInput = ref(null);
+
+const searchForm = reactive({
+  materialName: '',
+});
+
 const pagination = reactive({
   total: 0,
   current: 1,
   pageSize: 10,
+});
+
+const addForm = reactive({
+  materialName: '',
+  file: null,
 });
 
 const columns = [
@@ -155,159 +163,155 @@ const columns = [
   },
 ];
 
-// 从localStorage获取数据
-const getLocalData = () => {
-  const data = localStorage.getItem('materialData');
-  return data ? JSON.parse(data) : [];
-};
+const handle = {
+  // 本地存储相关方法
+  getLocalData: () => {
+    const data = localStorage.getItem('materialData');
+    return data ? JSON.parse(data) : [];
+  },
 
-// 保存数据到localStorage
-const saveLocalData = (data) => {
-  localStorage.setItem('materialData', JSON.stringify(data));
-};
+  saveLocalData: (data) => {
+    localStorage.setItem('materialData', JSON.stringify(data));
+  },
 
-// 获取素材列表
-const fetchData = () => {
-  loading.value = true;
-  const allData = getLocalData();
-  const filteredData = allData.filter(item => 
-    item.fileName.toLowerCase().includes(searchForm.fileName.toLowerCase())
-  );
-  renderData.value = filteredData.slice(
-    (pagination.current - 1) * pagination.pageSize,
-    pagination.current * pagination.pageSize
-  );
-  pagination.total = filteredData.length;
-  loading.value = false;
-};
+  // 数据获取和搜索相关方法
+  fetchData: () => {
+    loading.value = true;
+    const allData = handle.getLocalData();
+    const filteredData = allData.filter(item => 
+      item.materialName.toLowerCase().includes(searchForm.materialName.toLowerCase())
+    );
+    renderData.value = filteredData.slice(
+      (pagination.current - 1) * pagination.pageSize,
+      pagination.current * pagination.pageSize
+    );
+    pagination.total = filteredData.length;
+    loading.value = false;
+  },
 
-const search = () => {
-  pagination.current = 1;
-  fetchData();
-};
+  search: () => {
+    pagination.current = 1;
+    handle.fetchData();
+  },
 
-const reset = () => {
-  searchForm.fileName = '';
-  search();
-};
+  reset: () => {
+    searchForm.materialName = '';
+    handle.search();
+  },
 
-const onPageChange = (current) => {
-  pagination.current = current;
-  fetchData();
-};
+  onPageChange: (current) => {
+    pagination.current = current;
+    handle.fetchData();
+  },
 
-const drawerVisible = ref(false);
-const addForm = reactive({
-  materialName: '',
-  file: null,
-});
+  // 文件上传相关方法
+  triggerFileInput: () => {
+    fileInput.value.click();
+  },
 
-const fileInput = ref(null);
-
-const triggerFileInput = () => {
-  fileInput.value.click();
-};
-
-const handleFileChange = (event) => {
-  const file = event.target.files[0];
-  if (file) {
-    addForm.file = file;
-    Message.success('素材选择成功');
-  } else {
-    addForm.file = null;
-    Message.error('素材选择失败');
-  }
-  // 重置 input
-  event.target.value = '';
-};
-
-const confirmAdd = () => {
-  if (!addForm.materialName.trim()) {
-    Message.error('请输入素材名称');
-    return;
-  }
-  if (!addForm.file) {
-    Message.error('请选择素材');
-    return;
-  }
-  console.log('Uploading file:', addForm.file);
-  handleFileUpload(addForm.file, () => {
-    drawerVisible.value = false;
-    Message.success('素材添加成功');
-    fetchData();
-  }, (error) => {
-    console.error('File upload error:', error);
-    Message.error('素材添加失败: ' + error.message);
-  });
-};
-
-const handleFileUpload = (fileObj, onSuccess, onError) => {
-  const reader = new FileReader();
-  
-  reader.onload = (event) => {
-    try {
-      const allData = getLocalData();
-      const newId = Math.max(...allData.map(item => item.id || 0), 0) + 1;
-      const newFile = {
-        id: newId,
-        fileName: fileObj.name,
-        materialName: addForm.materialName,
-        uploadTime: new Date().toLocaleString(),
-        fileData: event.target.result,
-        fileSize: fileObj.size
-      };
-      allData.push(newFile);
-      saveLocalData(allData);
-      onSuccess();
-    } catch (error) {
-      console.error('上传失败:', error);
-      onError(error);
+  fileChange: (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      addForm.file = file;
+      Message.success('素材选择成功');
+    } else {
+      addForm.file = null;
+      Message.error('素材选择失败');
     }
-  };
+    event.target.value = '';
+  },
 
-  reader.onerror = (error) => {
-    console.error('素材读取失败:', error);
-    onError(error);
-  };
+  fileUpload: (fileObj, onSuccess, onError) => {
+    const reader = new FileReader();
+    
+    reader.onload = (event) => {
+      try {
+        const allData = handle.getLocalData();
+        const newId = Math.max(...allData.map(item => item.id || 0), 0) + 1;
+        const newFile = {
+          id: newId,
+          fileName: fileObj.name,
+          materialName: addForm.materialName,
+          uploadTime: new Date().toLocaleString(),
+          fileData: event.target.result,
+          fileSize: fileObj.size
+        };
+        allData.push(newFile);
+        handle.saveLocalData(allData);
+        onSuccess();
+      } catch (error) {
+        console.error('上传失败:', error);
+        onError(error);
+      }
+    };
 
-  reader.readAsDataURL(fileObj);
+    reader.onerror = (error) => {
+      console.error('素材读取失败:', error);
+      onError(error);
+    };
+
+    reader.readAsDataURL(fileObj);
+  },
+
+  // 抽屉相关方法
+  openAddDrawer: () => {
+    addForm.materialName = '';
+    addForm.file = null;
+    if (fileInput.value) {
+      fileInput.value.value = '';
+    }
+    drawerVisible.value = true;
+  },
+
+  closeAddDrawer: () => {
+    drawerVisible.value = false;
+  },
+
+  confirmAdd: () => {
+    if (!addForm.materialName.trim()) {
+      Message.error('请输入素材名称');
+      return;
+    }
+    if (!addForm.file) {
+      Message.error('请选择素材');
+      return;
+    }
+    console.log('Uploading file:', addForm.file);
+    handle.fileUpload(addForm.file, () => {
+      drawerVisible.value = false;
+      Message.success('素材添加成功');
+      handle.fetchData();
+    }, (error) => {
+      console.error('File upload error:', error);
+      Message.error('素材添加失败: ' + error.message);
+    });
+  },
+
+  // 操作相关方法
+  download: (record) => {
+    const link = document.createElement('a');
+    link.href = record.fileData;
+    link.download = record.fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  },
+
+  delete: (record) => {
+    const allData = handle.getLocalData();
+    const index = allData.findIndex(item => item.id === record.id);
+    if (index !== -1) {
+      allData.splice(index, 1);
+      handle.saveLocalData(allData);
+      Message.success('素材删除成功');
+      handle.fetchData();
+    }
+  },
 };
 
-const handleDownload = (record) => {
-  const link = document.createElement('a');
-  link.href = record.fileData;
-  link.download = record.fileName;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-};
-
-const handleDelete = (record) => {
-  const allData = getLocalData();
-  const index = allData.findIndex(item => item.id === record.id);
-  if (index !== -1) {
-    allData.splice(index, 1);
-    saveLocalData(allData);
-    Message.success('素材删除成功');
-    fetchData();
-  }
-};
-
-const openAddDrawer = () => {
-  addForm.materialName = '';
-  addForm.file = null;
-  if (fileInput.value) {
-    fileInput.value.value = '';
-  }
-  drawerVisible.value = true;
-};
-
-const closeAddDrawer = () => {
-  drawerVisible.value = false;
-};
-
+// 初始化
 onMounted(() => {
-  fetchData();
+  handle.fetchData();
 });
 </script>
 
