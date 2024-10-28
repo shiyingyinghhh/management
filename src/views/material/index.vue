@@ -8,7 +8,6 @@ const data = reactive({
   loading: false,
   renderData: [],
   drawerVisible: false,
-  fileInput: null,
   searchForm: {
     materialName: '',
   },
@@ -89,62 +88,15 @@ const handle = {
     handle.fetchData();
   },
 
-  // 文件上传相关方法
-  triggerFileInput: () => {
-    data.fileInput.click();
-  },
 
-  fileChange: (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      data.addForm.file = file;
-      Message.success('素材选择成功');
-    } else {
-      data.addForm.file = null;
-      Message.error('素材选择失败');
-    }
-    event.target.value = '';
-  },
+ 
 
-  fileUpload: (fileObj, onSuccess, onError) => {
-    const reader = new FileReader();
-    
-    reader.onload = (event) => {
-      try {
-        const allData = handle.getLocalData();
-        const newId = Math.max(...allData.map(item => item.id || 0), 0) + 1;
-        const newFile = {
-          id: newId,
-          fileName: fileObj.name,
-          materialName: data.addForm.materialName,
-          uploadTime: new Date().toLocaleString(),
-          fileData: event.target.result,
-          fileSize: fileObj.size
-        };
-        allData.push(newFile);
-        handle.saveLocalData(allData);
-        onSuccess();
-      } catch (error) {
-        console.error('上传失败:', error);
-        onError(error);
-      }
-    };
-
-    reader.onerror = (error) => {
-      console.error('素材读取失败:', error);
-      onError(error);
-    };
-
-    reader.readAsDataURL(fileObj);
-  },
+  
 
   // 抽屉相关方法
   openAddDrawer: () => {
     data.addForm.materialName = '';
     data.addForm.file = null;
-    if (data.fileInput) {
-      data.fileInput.value = '';
-    }
     data.drawerVisible = true;
   },
 
@@ -190,6 +142,32 @@ const handle = {
       handle.saveLocalData(allData);
       Message.success('素材删除成功');
       handle.fetchData();
+    }
+  },
+
+  fileUpload: (file, onSuccess, onError) => {
+    try {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const allData = handle.getLocalData();
+        const newMaterial = {
+          id: Date.now(),
+          materialName: data.addForm.materialName,
+          fileName: file.name,
+          fileSize: file.size,
+          fileData: e.target.result,
+          uploadTime: new Date().toLocaleString()
+        };
+        allData.push(newMaterial);
+        handle.saveLocalData(allData);
+        onSuccess();
+      };
+      reader.onerror = (error) => {
+        onError(error);
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      onError(error);
     }
   },
 };
@@ -292,27 +270,20 @@ onMounted(() => {
             <a-input v-model="data.addForm.materialName" placeholder="请输入素材名称" class="w-full" />
           </a-form-item>
           <a-form-item field="file" label="上传素材" required>
-            <div class="flex items-center gap-2">
-              <input 
-                type="file" 
-                @change="handle.fileChange" 
-                ref="fileInput" 
-                class="hidden" 
-                accept="image/*,.pdf"
-              />
-              <a-button @click="handle.triggerFileInput">
-                {{ data.addForm.file ? '重新选择' : '选择素材' }}
-              </a-button>
-              <span v-if="data.addForm.file" class="text-gray-600">
-                {{ data.addForm.file.name }}
-              </span>
-            </div>  
+            <a-upload
+              :auto-upload="false"
+              :limit="1"
+              @change="(fileList) => data.addForm.file = fileList[0].file"
+            >
+              
+            </a-upload>
           </a-form-item>
         </a-form>
       </a-drawer>
     </a-card>
   </div>
 </template>
+
 
 
 
