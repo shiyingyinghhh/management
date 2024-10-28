@@ -60,7 +60,7 @@
             下载
           </a-button>
           <a-popconfirm
-            content="确定要删除这个文件吗？"
+            content="确定要删除这个素材吗？"
             @ok="handleDelete(record)"
           >
             <a-button type="text" status="danger" size="small">
@@ -125,10 +125,6 @@ const columns = [
     title: '文件大小',
     dataIndex: 'fileSize',
     render: ({ record }) => `${(record.fileSize / 1024).toFixed(2)} KB`,
-  },
-  {
-    title: '文件类型',
-    dataIndex: 'fileType',
   },
   {
     title: '上传时间',
@@ -212,10 +208,10 @@ const handleFileChange = (event) => {
     console.log('Selected file:', file);
     addForm.fileName = file.name;
     addForm.file = file;
-    Message.success('文件选择成功');
+    Message.success('素材选择成功');
   } else {
     console.error('No file selected');
-    Message.error('文件选择失败');
+    Message.error('素材选择失败');
   }
 };
 
@@ -225,7 +221,7 @@ const confirmAdd = () => {
     return;
   }
   if (!addForm.file) {
-    Message.error('请选择文件');
+    Message.error('请选择素材');
     return;
   }
   console.log('Uploading file:', addForm.file);
@@ -252,8 +248,7 @@ const handleFileUpload = (fileObj, onSuccess, onError) => {
         materialName: addForm.materialName,
         uploadTime: new Date().toLocaleString(),
         fileData: event.target.result,
-        fileSize: fileObj.size,
-        fileType: fileObj.type
+        fileSize: fileObj.size
       };
       allData.push(newFile);
       saveLocalData(allData);
@@ -265,7 +260,7 @@ const handleFileUpload = (fileObj, onSuccess, onError) => {
   };
 
   reader.onerror = (error) => {
-    console.error('文件读取失败:', error);
+    console.error('素材读取失败:', error);
     onError(error);
   };
 
@@ -287,7 +282,7 @@ const handleDelete = (record) => {
   if (index !== -1) {
     allData.splice(index, 1);
     saveLocalData(allData);
-    Message.success('文件删除成功');
+    Message.success('素材删除成功');
     fetchData();
   }
 };
