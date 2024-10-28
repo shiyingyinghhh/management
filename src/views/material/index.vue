@@ -1,27 +1,26 @@
 <script setup>
-import { reactive, ref, computed, onMounted } from 'vue';
+import { reactive, ref, onMounted } from 'vue';
 import { Message } from '@arco-design/web-vue';
-import { useRouter } from 'vue-router';
 
-const router = useRouter();
-const loading = ref(false);
-const renderData = ref([]);
-const drawerVisible = ref(false);
-const fileInput = ref(null);
 
-const searchForm = reactive({
-  materialName: '',
-});
 
-const pagination = reactive({
-  total: 0,
-  current: 1,
-  pageSize: 10,
-});
-
-const addForm = reactive({
-  materialName: '',
-  file: null,
+const data = reactive({
+  loading: false,
+  renderData: [],
+  drawerVisible: false,
+  fileInput: null,
+  searchForm: {
+    materialName: '',
+  },
+  pagination: {
+    total: 0,
+    current: 1,
+    pageSize: 10,
+  },
+  addForm: {
+    materialName: '',
+    file: null,
+  }
 });
 
 const columns = [
@@ -62,46 +61,46 @@ const handle = {
 
   // 数据获取和搜索相关方法
   fetchData: () => {
-    loading.value = true;
+    data.loading = true;
     const allData = handle.getLocalData();
     const filteredData = allData.filter(item => 
-      item.materialName.toLowerCase().includes(searchForm.materialName.toLowerCase())
+      item.materialName.toLowerCase().includes(data.searchForm.materialName.toLowerCase())
     );
-    renderData.value = filteredData.slice(
-      (pagination.current - 1) * pagination.pageSize,
-      pagination.current * pagination.pageSize
+    data.renderData = filteredData.slice(
+      (data.pagination.current - 1) * data.pagination.pageSize,
+      data.pagination.current * data.pagination.pageSize
     );
-    pagination.total = filteredData.length;
-    loading.value = false;
+    data.pagination.total = filteredData.length;
+    data.loading = false;
   },
 
   search: () => {
-    pagination.current = 1;
+    data.pagination.current = 1;
     handle.fetchData();
   },
 
   reset: () => {
-    searchForm.materialName = '';
+    data.searchForm.materialName = '';
     handle.search();
   },
 
   onPageChange: (current) => {
-    pagination.current = current;
+    data.pagination.current = current;
     handle.fetchData();
   },
 
   // 文件上传相关方法
   triggerFileInput: () => {
-    fileInput.value.click();
+    data.fileInput.click();
   },
 
   fileChange: (event) => {
     const file = event.target.files[0];
     if (file) {
-      addForm.file = file;
+      data.addForm.file = file;
       Message.success('素材选择成功');
     } else {
-      addForm.file = null;
+      data.addForm.file = null;
       Message.error('素材选择失败');
     }
     event.target.value = '';
@@ -117,7 +116,7 @@ const handle = {
         const newFile = {
           id: newId,
           fileName: fileObj.name,
-          materialName: addForm.materialName,
+          materialName: data.addForm.materialName,
           uploadTime: new Date().toLocaleString(),
           fileData: event.target.result,
           fileSize: fileObj.size
@@ -141,30 +140,30 @@ const handle = {
 
   // 抽屉相关方法
   openAddDrawer: () => {
-    addForm.materialName = '';
-    addForm.file = null;
-    if (fileInput.value) {
-      fileInput.value.value = '';
+    data.addForm.materialName = '';
+    data.addForm.file = null;
+    if (data.fileInput) {
+      data.fileInput.value = '';
     }
-    drawerVisible.value = true;
+    data.drawerVisible = true;
   },
 
   closeAddDrawer: () => {
-    drawerVisible.value = false;
+    data.drawerVisible = false;
   },
 
   confirmAdd: () => {
-    if (!addForm.materialName.trim()) {
+    if (!data.addForm.materialName.trim()) {
       Message.error('请输入素材名称');
       return;
     }
-    if (!addForm.file) {
+    if (!data.addForm.file) {
       Message.error('请选择素材');
       return;
     }
-    console.log('Uploading file:', addForm.file);
-    handle.fileUpload(addForm.file, () => {
-      drawerVisible.value = false;
+    console.log('Uploading file:', data.addForm.file);
+    handle.fileUpload(data.addForm.file, () => {
+      data.drawerVisible = false;
       Message.success('素材添加成功');
       handle.fetchData();
     }, (error) => {
@@ -207,7 +206,7 @@ onMounted(() => {
       <a-row class="mb-4">
         <a-col :flex="1">
           <a-form
-            :model="searchForm"
+            :model="data.searchForm"
             :label-col-props="{ span: 6 }"
             :wrapper-col-props="{ span: 18 }"
             label-align="left"
@@ -216,7 +215,7 @@ onMounted(() => {
               <a-col :span="8">
                 <a-form-item field="materialName" label="素材名称">
                   <a-input
-                    v-model="searchForm.materialName"
+                    v-model="data.searchForm.materialName"
                     placeholder="请输入素材名称"
                     class="w-full"
                     allow-clear="true"
@@ -253,10 +252,10 @@ onMounted(() => {
       </a-row>
       <a-table
         row-key="id"
-        :loading="loading"
-        :pagination="pagination"
+        :loading="data.loading"
+        :pagination="data.pagination"
         :columns="columns"
-        :data="renderData"
+        :data="data.renderData"
         class="mt-4"
         :bordered="false"
         @page-change="handle.onPageChange"
@@ -278,19 +277,19 @@ onMounted(() => {
 
       <!-- 新增素材抽屉 -->
       <a-drawer
-        :visible="drawerVisible"
+        :visible="data.drawerVisible"
         @cancel="handle.closeAddDrawer"
         @ok="handle.confirmAdd"
         title="新增素材"
         width="500px"
       >
         <a-form 
-          :model="addForm" 
+          :model="data.addForm" 
           :label-col-props="{ span: 6 }" 
           :wrapper-col-props="{ span: 18 }"
         >
           <a-form-item field="materialName" label="素材名称" required>
-            <a-input v-model="addForm.materialName" placeholder="请输入素材名称" class="w-full" />
+            <a-input v-model="data.addForm.materialName" placeholder="请输入素材名称" class="w-full" />
           </a-form-item>
           <a-form-item field="file" label="上传素材" required>
             <div class="flex items-center gap-2">
@@ -302,10 +301,10 @@ onMounted(() => {
                 accept="image/*,.pdf"
               />
               <a-button @click="handle.triggerFileInput">
-                {{ addForm.file ? '重新选择' : '选择素材' }}
+                {{ data.addForm.file ? '重新选择' : '选择素材' }}
               </a-button>
-              <span v-if="addForm.file" class="text-gray-600">
-                {{ addForm.file.name }}
+              <span v-if="data.addForm.file" class="text-gray-600">
+                {{ data.addForm.file.name }}
               </span>
             </div>  
           </a-form-item>
