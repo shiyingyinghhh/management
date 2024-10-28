@@ -79,7 +79,7 @@
       width="500px"
     >
       <a-form
-        ref="data.formRef"
+        ref="formRef"
         :model="data.form"
         :rules="data.rules"
         @submit="handle.submit"
@@ -99,7 +99,7 @@ import { Message } from '@arco-design/web-vue';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
-
+const formRef = ref(null);
 const data = reactive({
   searchForm: {
     templateName: '',
@@ -132,7 +132,6 @@ const data = reactive({
     pageSize: 10,
   },
   drawerVisible: false,
-  formRef: null,
 });
 
 const drawerTitle = computed(() => data.form.id ? '编辑模板' : '新增模板');
@@ -179,12 +178,12 @@ const handle = {
 
   closeDrawer() {
     data.drawerVisible = false;
-    data.formRef?.resetFields();
+    formRef.value?.resetFields();
   },
 
   async submit() {
     try {
-      const errors = await data.formRef.validate();
+      const errors = await formRef.value.validate();
       if (errors) {
         console.error('表单验证失败', errors);
         return;
@@ -244,6 +243,8 @@ const handle = {
     data.loading = false;
   },
 };
+
+
 
 onMounted(() => {
   handle.fetchData();
