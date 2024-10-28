@@ -14,6 +14,7 @@ const form = reactive({
   id: null,
   projectNumber: '',
   projectName: '',
+  createTime: '', // 新增创建时间字段
 });
 
 const rules = {
@@ -61,6 +62,10 @@ const columns = [
     dataIndex: 'projectName',
   },
   {
+    title: '创建时间',
+    dataIndex: 'createTime',
+  },
+  {
     title: '操作',
     dataIndex: 'operations',
     slotName: 'operations',
@@ -77,14 +82,14 @@ const loadMockData = () => {
   if (storedData) {
     mockData.value = JSON.parse(storedData);
   } else {
+    const now = new Date();
     mockData.value = [
-      { id: 1, projectNumber: 'P001', projectName: '项目A' },
-      { id: 2, projectNumber: 'P002', projectName: '项目B' },
-      { id: 3, projectNumber: 'P003', projectName: '项目C' },
+      { id: 1, projectNumber: 'P001', projectName: '项目A', createTime: '2024-03-20 09:30' },
+      { id: 2, projectNumber: 'P002', projectName: '项目B', createTime: '2024-03-21 14:20' },
+      { id: 3, projectNumber: 'P003', projectName: '项目C', createTime: '2024-03-22 16:45' },
     ];
     saveMockData();
   }
-  console.log('Loaded mockData:', mockData.value); // 添加这行
 };
 
 const saveMockData = () => {
@@ -125,13 +130,16 @@ const openDrawer = (record) => {
   if (record) {
     Object.assign(form, record);
   } else {
+    const now = new Date();
+    const formattedDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    
     Object.assign(form, {
       id: null,
       projectNumber: '',
       projectName: '',
+      createTime: formattedDate,
     });
   }
-  console.log('Opening drawer with form:', form); // 添加这行
   drawerVisible.value = true;
 };
 
@@ -192,8 +200,14 @@ const handleDelete = (record) => {
   }
 };
 
-const enterProject = (projectNumber) => {
-  router.push(`/projects/project/${projectNumber}`);
+const enterProject = (record) => {
+  router.push({
+    path: `/projects/project/${record.projectNumber}`,
+    query: {
+      projectName: record.projectName,
+      createTime: record.createTime
+    }
+  });
 };
 
 onMounted(() => {
@@ -280,7 +294,7 @@ onMounted(() => {
               删除
             </a-button>
           </a-popconfirm>
-          <a-button type="text" size="small" @click="enterProject(record.projectNumber)">
+          <a-button type="text" size="small" @click="enterProject(record)">
             进入项目
           </a-button>
         </template>
@@ -305,6 +319,9 @@ onMounted(() => {
         </a-form-item>
         <a-form-item field="projectName" label="项目名称">
           <a-input v-model="form.projectName" placeholder="请输入项目名称" />
+        </a-form-item>
+        <a-form-item field="createTime" label="创建时间">
+          <a-input v-model="form.createTime" readonly />
         </a-form-item>
       </a-form>
     </a-drawer>
