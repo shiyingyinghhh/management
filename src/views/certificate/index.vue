@@ -103,6 +103,7 @@
         ref="formRef"
         :model="data.form"
         :rules="data.rules"
+        layout="vertical"
         @submit="handle.submit"
       >
         <a-form-item field="certificateName" label="证书名称">
