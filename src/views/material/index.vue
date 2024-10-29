@@ -18,11 +18,16 @@ const data = reactive({
   },
   addForm: {
     materialName: '',
+    materialCode: '',
     file: null,
   }
 });
 
 const columns = [
+  {
+    title: '素材编码',
+    dataIndex: 'materialCode',
+  },
   {
     title: '素材名称',
     dataIndex: 'materialName',
@@ -46,6 +51,59 @@ const columns = [
     slotName: 'operations',
   },
 ];
+
+const fileList = ref([]);
+
+const formRef = ref(null);
+
+const rules = {
+  materialCode: [
+    { required: true, message: '请输入素材编码' },
+    {
+      validator: async (value, callback) => {
+        if (value) {
+          const allData = handle.getLocalData();
+          const isCodeExist = allData.some(item => 
+            item.materialCode === value
+          );
+          if (isCodeExist) {
+            callback('素材编码已存在，请使用其他编码');
+          }
+        }
+        callback();
+      },
+    }
+  ],
+  materialName: [
+    { required: true, message: '请输入素材名称' },
+    {
+      validator: async (value, callback) => {
+        if (value) {
+          const allData = handle.getLocalData();
+          const isNameExist = allData.some(item => 
+            item.materialName === value
+          );
+          if (isNameExist) {
+            callback('素材名称已存在，请使用其他名称');
+          }
+        }
+        callback();
+      },
+    }
+  ],
+  file: [
+    { 
+      required: true, 
+      message: '请选择素材文件',
+      validator: (value, callback) => {
+        if (!data.addForm.file) {
+          callback('请选择素材文件');
+        }
+        callback();
+      }
+    }
+  ]
+};
 
 const handle = {
   // 本地存储相关方法
@@ -95,32 +153,33 @@ const handle = {
 
   // 抽屉相关方法
   openAddDrawer: () => {
-    data.addForm.materialName = '';
-    data.addForm.file = null;
+    data.addForm = {
+      materialName: '',
+      materialCode: '',
+      file: null,
+    };
+    fileList.value = [];
     data.drawerVisible = true;
   },
 
   closeAddDrawer: () => {
     data.drawerVisible = false;
+    fileList.value = [];
   },
 
   confirmAdd: () => {
-    if (!data.addForm.materialName.trim()) {
-      Message.error('请输入素材名称');
-      return;
-    }
-    if (!data.addForm.file) {
-      Message.error('请选择素材');
-      return;
-    }
-    console.log('Uploading file:', data.addForm.file);
-    handle.fileUpload(data.addForm.file, () => {
-      data.drawerVisible = false;
-      Message.success('素材添加成功');
-      handle.fetchData();
-    }, (error) => {
-      console.error('File upload error:', error);
-      Message.error('素材添加失败: ' + error.message);
+    formRef.value.validate().then(() => {
+      console.log('Uploading file:', data.addForm.file);
+      handle.fileUpload(data.addForm.file, () => {
+        data.drawerVisible = false;
+        Message.success('素材添加成功');
+        handle.fetchData();
+      }, (error) => {
+        console.error('File upload error:', error);
+        Message.error('素材添加失败: ' + error.message);
+      });
+    }).catch((errors) => {
+      console.log('validation errors:', errors);
     });
   },
 
@@ -150,8 +209,19 @@ const handle = {
       const reader = new FileReader();
       reader.onload = (e) => {
         const allData = handle.getLocalData();
+        
+        const isCodeExist = allData.some(item => 
+          item.materialCode === data.addForm.materialCode
+        );
+        
+        if (isCodeExist) {
+          onError(new Error('素材编码已存在，请使用其他编码'));
+          return;
+        }
+
         const newMaterial = {
           id: Date.now(),
+          materialCode: data.addForm.materialCode,
           materialName: data.addForm.materialName,
           fileName: file.name,
           fileSize: file.size,
@@ -262,10 +332,15 @@ onMounted(() => {
         width="500px"
       >
         <a-form 
+          ref="formRef"
           :model="data.addForm" 
+          :rules="rules"
           :label-col-props="{ span: 6 }" 
           :wrapper-col-props="{ span: 18 }"
         >
+          <a-form-item field="materialCode" label="素材编码" required>
+            <a-input v-model="data.addForm.materialCode" placeholder="请输入素材编码" class="w-full" />
+          </a-form-item>
           <a-form-item field="materialName" label="素材名称" required>
             <a-input v-model="data.addForm.materialName" placeholder="请输入素材名称" class="w-full" />
           </a-form-item>
@@ -273,9 +348,15 @@ onMounted(() => {
             <a-upload
               :auto-upload="false"
               :limit="1"
-              @change="(fileList) => data.addForm.file = fileList[0].file"
+              :file-list="fileList"
+              @change="(files) => {
+                fileList.value = files;
+                data.addForm.file = files.length > 0 ? files[0].file : null;
+              }"
             >
-              
+              <template #upload-button>
+                <a-button>选择文件</a-button>
+              </template>
             </a-upload>
           </a-form-item>
         </a-form>
