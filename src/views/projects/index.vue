@@ -37,6 +37,20 @@ const rules = {
   ],
   projectName: [
     { required: true, message: '请输入项目名称' },
+    {
+      validator: (value, callback) => {
+        if (value) {
+          const isExist = mockData.value.some(item => item.projectName === value && item.id !== form.id);
+          if (isExist) {
+            callback('项目名称已存在');
+          } else {
+            callback();
+          }
+        } else {
+          callback();
+        }
+      },
+    },
   ],
 };
 
@@ -118,7 +132,7 @@ const search = () => {
 const reset = () => {
   searchForm.projectName = '';
   searchForm.projectNumber = '';
-  search();
+  search(); // 调用 search 函数
 };
 
 const onPageChange = (current) => {
@@ -312,12 +326,13 @@ onMounted(() => {
         ref="formRef"
         :model="form"
         :rules="rules"
+        layout="vertical"
         @submit="handleSubmit"
       >
-        <a-form-item field="projectNumber" label="项目编号">
+        <a-form-item field="projectNumber" label="项目编号" validate-trigger="blur">
           <a-input v-model="form.projectNumber" placeholder="请输入项目编号" />
         </a-form-item>
-        <a-form-item field="projectName" label="项目名称">
+        <a-form-item field="projectName" label="项目名称" validate-trigger="blur">
           <a-input v-model="form.projectName" placeholder="请输入项目名称" />
         </a-form-item>
         <a-form-item field="createTime" label="创建时间">
