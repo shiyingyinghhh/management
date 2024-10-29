@@ -92,6 +92,7 @@
         ref="formRef"
         :model="data.form"
         :rules="data.rules"
+        layout="vertical"
       >
         <a-form-item 
           field="templateName" 
@@ -185,7 +186,7 @@ const drawerTitle = computed(() => data.form.id ? '编辑模板' : '新增模板
 
 const columns = [
   {
-    title: '模板码',
+    title: '模板编码',
     dataIndex: 'templateCode',
   },
   {
