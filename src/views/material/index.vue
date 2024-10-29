@@ -60,7 +60,7 @@ const rules = {
   materialCode: [
     { required: true, message: '请输入素材编码' },
     {
-      validator: async (value, callback) => {
+      validator: (value, callback) => {
         if (value) {
           const allData = handle.getLocalData();
           const isCodeExist = allData.some(item => 
@@ -68,16 +68,18 @@ const rules = {
           );
           if (isCodeExist) {
             callback('素材编码已存在，请使用其他编码');
+            return;
           }
         }
         callback();
       },
+      validateTrigger: ['change', 'input']
     }
   ],
   materialName: [
     { required: true, message: '请输入素材名称' },
     {
-      validator: async (value, callback) => {
+      validator: (value, callback) => {
         if (value) {
           const allData = handle.getLocalData();
           const isNameExist = allData.some(item => 
@@ -85,10 +87,12 @@ const rules = {
           );
           if (isNameExist) {
             callback('素材名称已存在，请使用其他名称');
+            return;
           }
         }
         callback();
       },
+      validateTrigger: ['change', 'input']
     }
   ],
   file: [
@@ -98,6 +102,7 @@ const rules = {
       validator: (value, callback) => {
         if (!data.addForm.file) {
           callback('请选择素材文件');
+          return;
         }
         callback();
       }
@@ -169,6 +174,23 @@ const handle = {
 
   confirmAdd: () => {
     formRef.value.validate().then(() => {
+      const allData = handle.getLocalData();
+      const isNameExist = allData.some(item => 
+        item.materialName === data.addForm.materialName
+      );
+      const isCodeExist = allData.some(item => 
+        item.materialCode === data.addForm.materialCode
+      );
+
+      if (isNameExist) {
+        Message.error('素材名称已存在，请使用其他名称');
+        return;
+      }
+      if (isCodeExist) {
+        Message.error('素材编码已存在，请使用其他编码');
+        return;
+      }
+
       console.log('Uploading file:', data.addForm.file);
       handle.fileUpload(data.addForm.file, () => {
         data.drawerVisible = false;
@@ -335,19 +357,26 @@ onMounted(() => {
           ref="formRef"
           :model="data.addForm" 
           :rules="rules"
-          :label-col-props="{ span: 6 }" 
-          :wrapper-col-props="{ span: 18 }"
+          layout="vertical"
         >
           <a-form-item field="materialCode" label="素材编码" required>
-            <a-input v-model="data.addForm.materialCode" placeholder="请输入素材编码" class="w-full" />
+            <a-input 
+              v-model="data.addForm.materialCode" 
+              placeholder="请输入素材编码" 
+              allow-clear
+            />
           </a-form-item>
           <a-form-item field="materialName" label="素材名称" required>
-            <a-input v-model="data.addForm.materialName" placeholder="请输入素材名称" class="w-full" />
+            <a-input 
+              v-model="data.addForm.materialName" 
+              placeholder="请输入素材名称" 
+              allow-clear
+            />
           </a-form-item>
           <a-form-item field="file" label="上传素材" required>
             <a-upload
               :auto-upload="false"
-              :limit="1"
+              :limit="1"  
               :file-list="fileList"
               @change="(files) => {
                 fileList.value = files;
